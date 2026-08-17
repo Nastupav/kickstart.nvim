@@ -167,10 +167,111 @@ do
   -- Minimal number of screen lines to keep above and below the cursor.
   vim.o.scrolloff = 10
 
+<<<<<<< Updated upstream
   -- if performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
   -- instead raise a dialog asking if you wish to save the current file(s)
   -- See `:help 'confirm'`
   vim.o.confirm = true
+=======
+-- [[ Basic Keymaps ]]
+--  See `:help vim.keymap.set()`
+
+
+-- Directional navigation: j/k/l/; = left/down/up/right.
+-- Applies to Normal, Visual, and Operator-pending modes.
+-- h keeps Vim's original semicolon action: repeat the latest f/t/F/T search.
+local navigation_modes = { 'n', 'x', 'o' }
+vim.keymap.set(navigation_modes, 'j', 'h', { desc = 'Move left' })
+vim.keymap.set(navigation_modes, 'k', 'j', { desc = 'Move down' })
+vim.keymap.set(navigation_modes, 'l', 'k', { desc = 'Move up' })
+vim.keymap.set(navigation_modes, ';', 'l', { desc = 'Move right' })
+vim.keymap.set(navigation_modes, 'h', ';', { desc = 'Repeat latest character search' })
+
+-- Focus split windows with the same j/k/l/; layout.
+vim.keymap.set('n', '<C-j>', '<C-w>h', { desc = 'Focus pane left' })
+vim.keymap.set('n', '<C-k>', '<C-w>j', { desc = 'Focus pane down' })
+vim.keymap.set('n', '<C-l>', '<C-w>k', { desc = 'Focus pane up' })
+vim.keymap.set('n', '<C-;>', '<C-w>l', { desc = 'Focus pane right' })
+
+-- Clear highlights on search when pressing <Esc> in normal mode
+--  See `:help hlsearch`
+vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+
+-- Diagnostic Config & Keymaps
+-- See :help vim.diagnostic.Opts
+vim.diagnostic.config {
+  update_in_insert = false,
+  severity_sort = true,
+  float = { border = 'rounded', source = 'if_many' },
+  underline = { severity = { min = vim.diagnostic.severity.WARN } },
+
+  -- Can switch between these as you prefer
+  virtual_text = true, -- Text shows up at the end of the line
+  virtual_lines = false, -- Text shows up underneath the line, with virtual lines
+
+  -- Auto open the float, so you can easily read the errors when jumping with `[d` and `]d`
+  jump = { float = true },
+}
+
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+
+-- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
+-- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
+-- is not what someone will guess without a bit more experience.
+--
+-- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
+-- or just use <C-\><C-n> to exit terminal mode
+vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
+-- TIP: Disable arrow keys in normal mode
+-- vim.keymap.set('n', '<left>', '<cmd>echo "Use j to move!!"<CR>')
+-- vim.keymap.set('n', '<right>', '<cmd>echo "Use k to move!!"<CR>')
+-- vim.keymap.set('n', '<up>', '<cmd>echo "Use l to move!!"<CR>')
+-- vim.keymap.set('n', '<down>', '<cmd>echo "Use ; to move!!"<CR>')
+
+-- Advantage360 editor-pane integration, kept inline so this config does not
+-- depend on an external Lua file. NAV+Y/U/I/O emits F21/F22/F23/F24 for
+-- left/down/up/right.
+vim.keymap.set('n', '<F21>', '<C-w>h', { desc = 'Pane focus left' })
+vim.keymap.set('n', '<F22>', '<C-w>j', { desc = 'Pane focus down' })
+vim.keymap.set('n', '<F23>', '<C-w>k', { desc = 'Pane focus up' })
+vim.keymap.set('n', '<F24>', '<C-w>l', { desc = 'Pane focus right' })
+
+vim.keymap.set('i', '<F21>', '<C-o><C-w>h', { desc = 'Pane focus left' })
+vim.keymap.set('i', '<F22>', '<C-o><C-w>j', { desc = 'Pane focus down' })
+vim.keymap.set('i', '<F23>', '<C-o><C-w>k', { desc = 'Pane focus up' })
+vim.keymap.set('i', '<F24>', '<C-o><C-w>l', { desc = 'Pane focus right' })
+
+vim.keymap.set('t', '<F21>', '<C-\\><C-n><C-w>h', { desc = 'Terminal pane focus left' })
+vim.keymap.set('t', '<F22>', '<C-\\><C-n><C-w>j', { desc = 'Terminal pane focus down' })
+vim.keymap.set('t', '<F23>', '<C-\\><C-n><C-w>k', { desc = 'Terminal pane focus up' })
+vim.keymap.set('t', '<F24>', '<C-\\><C-n><C-w>l', { desc = 'Terminal pane focus right' })
+
+vim.keymap.set('n', '<leader>wJ', '<C-w>H', { desc = 'Move pane left' })
+vim.keymap.set('n', '<leader>wK', '<C-w>J', { desc = 'Move pane down' })
+vim.keymap.set('n', '<leader>wL', '<C-w>K', { desc = 'Move pane up' })
+vim.keymap.set('n', '<leader>w;', '<C-w>L', { desc = 'Move pane right' })
+
+-- [[ Basic Autocommands ]]
+--  See `:help lua-guide-autocommands`
+
+-- Highlight when yanking (copying) text
+--  Try it with `yap` in normal mode
+--  See `:help vim.hl.on_yank()`
+vim.api.nvim_create_autocmd('TextYankPost', {
+  desc = 'Highlight when yanking (copying) text',
+  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+  callback = function() vim.hl.on_yank() end,
+})
+
+-- [[ Install `lazy.nvim` plugin manager ]]
+--    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
+local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
+  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
+  if vim.v.shell_error ~= 0 then error('Error cloning lazy.nvim:\n' .. out) end
+>>>>>>> Stashed changes
 end
 
 -- ============================================================
@@ -390,10 +491,91 @@ do
     },
   }
 
+<<<<<<< Updated upstream
   -- Load the colorscheme here.
   -- Like many other themes, this one has different styles, and you could load
   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
   vim.cmd.colorscheme 'tokyonight-night'
+=======
+        -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
+        --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
+      },
+
+      appearance = {
+        -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
+        -- Adjusts spacing to ensure icons are aligned
+        nerd_font_variant = 'mono',
+      },
+
+      completion = {
+        -- By default, you may press `<c-space>` to show the documentation.
+        -- Optionally, set `auto_show = true` to show the documentation after a delay.
+        documentation = { auto_show = false, auto_show_delay_ms = 500 },
+      },
+
+      sources = {
+        default = { 'lsp', 'path', 'snippets' },
+      },
+
+      snippets = { preset = 'luasnip' },
+
+      -- Blink.cmp includes an optional, recommended rust fuzzy matcher,
+      -- which automatically downloads a prebuilt binary when enabled.
+      --
+      -- By default, we use the Lua implementation instead, but you may enable
+      -- the rust implementation via `'prefer_rust_with_warning'`
+      --
+      -- See :h blink-cmp-config-fuzzy for more information
+      fuzzy = { implementation = 'lua' },
+
+      -- Shows a signature help window while you type arguments for a function
+      signature = { enabled = true },
+    },
+  },
+
+  { -- Catppuccin Mocha colorscheme — consistent with terminal, lazygit, delta, fzf
+    'catppuccin/nvim',
+    name = 'catppuccin',
+    priority = 1000,
+    config = function()
+      require('catppuccin').setup {
+        flavour = 'mocha',
+        background = { light = 'latte', dark = 'mocha' },
+        transparent_background = false,
+        show_end_of_buffer = false,
+        term_colors = true,
+        dim_inactive = { enabled = true, shade = 'dark', percentage = 0.15 },
+        styles = {
+          comments = { 'italic' },
+          conditionals = { 'italic' },
+          keywords = { 'bold' },
+          functions = {},
+          variables = {},
+        },
+        integrations = {
+          cmp = true,
+          gitsigns = true,
+          nvimtree = true,
+          telescope = { enabled = true },
+          treesitter = true,
+          mini = { enabled = true },
+          which_key = true,
+          indent_blankline = { enabled = true },
+          native_lsp = {
+            enabled = true,
+            underlines = {
+              errors = { 'undercurl' },
+              hints = { 'undercurl' },
+              warnings = { 'undercurl' },
+              information = { 'undercurl' },
+            },
+          },
+        },
+      }
+      vim.cmd.colorscheme 'catppuccin-mocha'
+    end,
+  },
+>>>>>>> Stashed changes
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
